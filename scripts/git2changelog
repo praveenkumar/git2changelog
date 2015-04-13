@@ -14,27 +14,42 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
 
 # File Name : git2changelog
 # Creation Date : 06-07-2014
 # Created By : Jamie Duncan
 # Last Modified : Sun 08 Jun 2014 05:58:37 AM EDT
-# Purpose : executable for converting a git log stanza into a usable spec file changelog
+# Purpose : executable for converting a git log stanza into a usable spec
+# file changelog
 
 from optparse import OptionParser
 from git2changelog import CLData
 import os
 
+
 def main():
 
-    parser = OptionParser(usage="%prog -b [-e -r -s]" )
-    parser.add_option("-b", "--begin_tag", dest="t_start", help="Tag to start data collecton from. required.", metavar="BEGIN_TAG")
-    parser.add_option("-e", "--end_tag", default='HEAD', dest="t_end", help="Tag to end the data collection. defaults to HEAD.", metavar="END_TAG")
-    parser.add_option("-f", "--log_format", default="rpm", dest="log_format", help="Format to Generate Changelog. defaults to rpm")
-    parser.add_option("-s", "--search", default=None, dest="search_term", help="Commit Search Criteria. optional.", metavar="SEARCH_TERM")
-    parser.add_option("-n", "--name", default=None, dest="tag_name", help="New Tag Name for untagged commits. optional.", metavar="TAG_NAME")
-    parser.add_option("-r", "--repo", default=None, dest="repo", help="Repository to Scan. defaults to current directory.", metavar="REPO")
+    parser = OptionParser(usage="%prog -b [-e -r -s]")
+    parser.add_option("-b", "--begin_tag", dest="t_start",
+                      help="Tag to start data collecton from. required.",
+                      metavar="BEGIN_TAG")
+    parser.add_option("-e", "--end_tag", default='HEAD', dest="t_end",
+                      help="Tag to end the data collection. defaults to HEAD.",
+                      metavar="END_TAG")
+    parser.add_option("-f", "--log_format", default="rpm",
+                      dest="log_format",
+                      help="Format to Generate Changelog. defaults to rpm")
+    parser.add_option("-s", "--search", default=None, dest="search_term",
+                      help="Commit Search Criteria. optional.",
+                      metavar="SEARCH_TERM")
+    parser.add_option("-n", "--name", default=None, dest="tag_name",
+                      help="New Tag Name for untagged commits. optional.",
+                      metavar="TAG_NAME")
+    parser.add_option("-r", "--repo", default=None, dest="repo",
+                      help="Repository to Scan. defaults to current directory.",
+                      metavar="REPO")
 
     (options, args) = parser.parse_args()
     if options.repo is None:

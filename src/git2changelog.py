@@ -12,7 +12,8 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
 
 # File Name : changelogup.py
 # Creation Date : 06-07-2014
@@ -20,41 +21,53 @@
 # Last Modified : Mon 09 Jun 2014 01:28:56 PM EDT
 # Purpose : for converting a git log stanza into a usable spec file changelog
 
+# Modified By : Praveen Kumar
+# Last Modified : Mon 13 Apr 2015 02:11:56 AM EDT
+# Purpose : fix pep8 issue
+
 import subprocess
 import csv
 from dateutil.parser import parse
-from optparse import OptionParser
 import os
 
-#################################
+#
 #
 # Python Module Requirement
 # python-dateutil
 #
-##################################
+#
+
 
 class InvalidRepositoryError(Exception):
     pass
 
+
 class NoGitTagsError(Exception):
     pass
+
 
 class CLData:
 
     def __init__(self, options):
 
-        self.t_start = options.t_start  #start tag
-        self.t_end = options.t_end    #end tag, defaults to 'HEAD'
+        self.t_start = options.t_start  # start tag
+        self.t_end = options.t_end  # end tag, defaults to 'HEAD'
         self.search_terms = False
+
+        # option search term to limit commit output,
+        # is passed as a comma-delimited list
         if options.search_term:
-            self.search_terms = options.search_term.split(',')  #option search term to limit commit output, is passed as a comma-delimited list
-        self.repo = options.repo    #git repo directory to run against - defaults to curr working directory
+            self.search_terms = options.search_term.split(
+                ','
+            )
+        # git repo directory to run against, defaults to curr working directory
+        self.repo = options.repo
         self.tag_name = False
         if options.tag_name:
             self.tag_name = options.tag_name
 
-        #log_format - opens up the ability to have other log formats generated
-        #current supported formats
+        # log_format - opens up the ability to have other log formats generated
+        # current supported formats
         # rpm - the default. and RPM spec file changelog
 
         self.log_format = options.log_format.lower()
@@ -64,20 +77,28 @@ class CLData:
 
     def _checkRepository(self):
         if not os.path.isdir(os.path.join(self.repo, '.git')):
-            raise InvalidRepositoryError("%s Does Not Appear to be a Valid git Repository" % self.repo)
+            raise InvalidRepositoryError(
+                "%s Does Not Appear to be a Valid git Repository" % self.repo)
 
     def _checkTags(self):
-        #the logic here: if you don't have any tagged releases you should not be creating a spec file.
+        # the logic here: if you don't have any tagged releases you should not
+        # be creating a spec file.
 
         git_command = 'git tag'
-        cl_raw = subprocess.Popen(git_command,shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=self.repo)
+        cl_raw = subprocess.Popen(git_command,
+                                  shell=True,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  cwd=self.repo)
 
         tags = cl_raw.stdout.readlines()
         if len(tags) == 0:
-            raise NoGitTagsError("The Repository Does Not Seem To Have any Tags Created. Please Verify.")
+            raise NoGitTagsError(
+                "The Repository Does Not Seem To Have any Tags"
+                " Created. Please Verify.")
 
     def _formatDate(self, date):
-        #returns the date in the proper format for a changelog in a spec file
+        # returns the date in the proper format for a changelog in a spec file
 
         return parse(date).strftime('%a %b %d %Y')
 
@@ -88,7 +109,7 @@ class CLData:
         new_release = False
         if 'HEAD' in tag:
             if 'tag' in tag:
-                tag = "- %s" % tag.split(':')[1].strip(' ()').split(',')[0] 
+                tag = "- %s" % tag.split(':')[1].strip(' ()').split(',')[0]
             else:
                 if self.tag_name:
                     tag = "- %s" % self.tag_name
@@ -99,13 +120,20 @@ class CLData:
             tag = "- %s" % tag.split(':')[1].strip(' ()')
             new_release = True
 
-        return new_release,tag
+        return new_release, tag
 
     def _getGitLog(self):
-        #grabs the raw git log data from the given repo
+        # grabs the raw git log data from the given repo
 
-        git_command = 'git --no-pager log %s..%s --pretty --format=\'%%cD,%%cn,%%ce,%%h,"%%s","%%d"\'' % (self.t_start, self.t_end)
-        cl_raw = subprocess.Popen(git_command,shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=self.repo)
+        git_command = ('git --no-pager log %s..%s --pretty '
+                       '--format=\'%%cD,%%cn,%%ce,%%h,"%%s","%%d"\'') % (
+            self.t_start, self.t_end
+        )
+        cl_raw = subprocess.Popen(git_command,
+                                  shell=True,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  cwd=self.repo)
 
         return cl_raw.stdout.readlines()
 
@@ -114,23 +142,26 @@ class CLData:
         # called if log_format = 'rpm'
 
         for row in data:
-            r_check,release = self._formatRelease(row[6])
+            r_check, release = self._formatRelease(row[6])
             if r_check:
-                print "\n* %s %s <%s> %s" % (self._formatDate(row[1]),row[2],row[3],release)
+                print "\n* %s %s <%s> %s" % (self._formatDate(row[1]), row[2],
+                                             row[3], release)
                 if self.search_terms:
                     for item in self.search_terms:
                         if item in row[5]:
-                            print "- %s : Commit %s" % (row[5],row[4])
+                            print "- %s : Commit %s" % (row[5], row[4])
                             break
                 else:
-                    print "- %s : Commit %s" % (row[5],row[4])
+                    print "- %s : Commit %s" % (row[5], row[4])
             else:
-                if self.search_terms:    #if we want to limit the output to lines with certain strings in the comment
+                # if we want to limit the output to lines with certain strings
+                # in the comment
+                if self.search_terms:
                     for item in self.search_terms:
                         if item in row[5]:
-                            print "- %s : Commit %s" % (row[5],row[4])
-                else:   #if we want all of the commits - no search term given
-                    print "- %s : Commit %s" % (row[5],row[4])
+                            print "- %s : Commit %s" % (row[5], row[4])
+                else:  # if we want all of the commits - no search term given
+                    print "- %s : Commit %s" % (row[5], row[4])
 
     def formatChangeLog(self):
 
